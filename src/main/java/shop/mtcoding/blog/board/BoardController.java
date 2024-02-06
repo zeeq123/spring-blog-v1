@@ -19,6 +19,7 @@ public class BoardController {
     private final BoardRepository boardRepository;
     private final HttpSession session;
 
+
     @PostMapping("/board/save")
     public String save(BoardRequest.SaveDTO requestDTO, HttpServletRequest request){
         // 1. 인증 체크
@@ -62,12 +63,25 @@ public class BoardController {
     }
 
     @GetMapping("/board/{id}")
-    public String detail(@PathVariable int id) {
-        System.out.println("id : "+id);
-        // 바디 데이터가 없으면 유효성 검사가 필요없지 ㅎ
+    public String detail(@PathVariable int id, HttpServletRequest request) {
+        // 1. 모델 진입 = 상세보기 데이터 가져오기
         BoardResponse.DetailDTO responseDTO = boardRepository.findById(id);
 
-        session.setAttribute("board", responseDTO);
+        // 2. 페이지 주인 여부 체크 (board의 userId와 sessionUser
+        User sessionUser = (User) session.getAttribute("sessionUser");
+
+        // 3. 로그인을 안했을 때
+        boolean pageOwner;
+        if (sessionUser == null){
+            pageOwner = false;
+        }else{
+            int boardUserId = responseDTO.getUserId();
+            int userId = sessionUser.getId();
+            pageOwner = boardUserId == userId;
+        }
+
+        request.setAttribute("board", responseDTO);
+        request.setAttribute("pageOwner", pageOwner);
         return "board/detail";
     }
 }
