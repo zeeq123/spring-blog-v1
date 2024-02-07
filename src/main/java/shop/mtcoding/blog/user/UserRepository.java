@@ -20,6 +20,8 @@ public class UserRepository {
         this.em = em;
     }
 
+
+
     @Transactional // db에 write 할때는 필수
     public void save(UserRequest.JoinDTO requestDTO){
         Query query = em.createNativeQuery("insert into user_tb(username, password, email, created_at) values(?,?,?, now())");
