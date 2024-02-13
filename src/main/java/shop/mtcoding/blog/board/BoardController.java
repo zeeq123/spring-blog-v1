@@ -3,8 +3,10 @@ package shop.mtcoding.blog.board;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import shop.mtcoding.blog._core.config.security.MyLoginUser;
 import shop.mtcoding.blog.user.User;
 
 import java.util.List;
@@ -20,9 +22,6 @@ public class BoardController {
     public String update(@PathVariable int id, BoardRequest.UpdateDTO requestDTO){
         // 1. 인증 체크
         User sessionUser = (User) session.getAttribute("sessionUser");
-        if (sessionUser == null){
-            return "redirect/loginForm";
-        }
 
         // 2. 권한 체크
         Board board = boardRepository.findById(id);
@@ -41,9 +40,6 @@ public class BoardController {
     public String updateForm(@PathVariable int id, HttpServletRequest request){
         // 1. 인증 안되면 내보내기
         User sessionUser = (User) session.getAttribute("sessionUser");
-        if (sessionUser == null){
-            return "redirect/loginForm";
-        }
 
         // 2. 권한 없으면 내보내기
         // 모델 위임(id로 board 조회)
@@ -61,10 +57,7 @@ public class BoardController {
     @PostMapping("/board/{id}/delete")
     public String delete(@PathVariable int id, HttpServletRequest request){
         User sessionUser = (User) session.getAttribute("sessionUser");
-        // 1. 인증 안되면 내보내기
-        if (sessionUser == null){
-            return "redirect/loginForm";
-        }
+
         // 2. 권한 없으면 내보내기
         Board board = boardRepository.findById(id);
         if (board.getUserId() != sessionUser.getId()){
@@ -98,9 +91,10 @@ public class BoardController {
         return "redirect:/";
     }
 
-    @GetMapping({ "/", "/board" })
-    public String index(HttpServletRequest request) {
+    @GetMapping("/")
+    public String index(HttpServletRequest request, @AuthenticationPrincipal MyLoginUser myLoginUser) {
 
+        System.out.println("로그인 : " + myLoginUser.getUsername());
         List<Board> boardList = boardRepository.findAll();
         request.setAttribute("boardList", boardList);
 
