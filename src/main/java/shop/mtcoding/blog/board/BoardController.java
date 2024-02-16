@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import shop.mtcoding.blog.reply.ReplyRepository;
 import shop.mtcoding.blog.user.User;
 
 import java.util.List;
@@ -15,6 +16,7 @@ public class BoardController {
 
     private final BoardRepository boardRepository;
     private final HttpSession session;
+    private final ReplyRepository replyRepository;
 
     @PostMapping("/board/{id}/update")
     public String update(@PathVariable int id, BoardRequest.UpdateDTO requestDTO){
@@ -122,24 +124,16 @@ public class BoardController {
 
     @GetMapping("/board/{id}")
     public String detail(@PathVariable int id, HttpServletRequest request) {
-        // 1. 모델 진입 = 상세보기 데이터 가져오기
-        BoardResponse.DetailDTO responseDTO = boardRepository.findByIdWithUser(id);
-
-        // 2. 페이지 주인 여부 체크 (board의 userId와 sessionUser
         User sessionUser = (User) session.getAttribute("sessionUser");
 
-        // 3. 로그인을 안했을 때
-        boolean pageOwner;
-        if (sessionUser == null){
-            pageOwner = false;
-        }else{
-            int boardUserId = responseDTO.getUserId();
-            int userId = sessionUser.getId();
-            pageOwner = boardUserId == userId;
-        }
+        BoardResponse.DetailDTO boardDTO = boardRepository.findByIdWithUser(id);
+        boardDTO.isBoardOwner(sessionUser);
 
-        request.setAttribute("board", responseDTO);
-        request.setAttribute("pageOwner", pageOwner);
+        List<BoardResponse.ReplyDTO> replyDTOList = replyRepository.findByBoardId(id, sessionUser);
+
+        request.setAttribute("board", boardDTO);
+        request.setAttribute("replyList", replyDTOList);
+
         return "board/detail";
     }
 }
