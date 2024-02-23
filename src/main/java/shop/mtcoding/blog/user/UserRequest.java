@@ -5,11 +5,6 @@ import lombok.Data;
 public class UserRequest {
 
     @Data
-    public static class UsernameSameCheckDTO{
-        private String username;
-    }
-
-    @Data
     public static class JoinDTO {
         private String username;
         private String password;

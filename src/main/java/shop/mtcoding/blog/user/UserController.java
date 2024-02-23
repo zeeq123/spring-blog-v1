@@ -26,34 +26,34 @@ public class UserController {
     // select * from user_tb where username=? and password=?
 
     @GetMapping("/api/username-same-check")
-    public @ResponseBody ApiUtil<?> usernameSameCheck(@RequestBody UserRequest.UsernameSameCheckDTO requestDTO){
-        User user = userRepository.findByUsername(requestDTO.getUsername());
-        if (user == null){
-            return new ApiUtil<>(true);
-        }else{
+    public @ResponseBody ApiUtil<?> usernameSameCheck(String username){
+        User user = userRepository.findByUsername(username);
+        if (user == null){ // 회원가입 가능
+             return new ApiUtil<>(true);
+        }else{ // 회원가입 불가능
             return new ApiUtil<>(false);
         }
     }
 
-@PostMapping("/login")
-public String login(UserRequest.LoginDTO requestDTO){
+    @PostMapping("/login")
+    public String login(UserRequest.LoginDTO requestDTO){
 
 
-    System.out.println(requestDTO); // toString -> @Data
+        System.out.println(requestDTO); // toString -> @Data
 
-    if(requestDTO.getUsername().length() < 3){
-        throw new RuntimeException("유저네임 길이가 너무 짧아요.");
+        if(requestDTO.getUsername().length() < 3){
+            throw new RuntimeException("유저네임 길이가 너무 짧아요.");
+        }
+
+        User user = userRepository.findByUsername(requestDTO.getUsername());
+
+        if (!BCrypt.checkpw(requestDTO.getPassword(), user.getPassword())){
+            throw new RuntimeException("패스워드가 틀렸습니다.");
+        }
+        session.setAttribute("sessionUser", user); // 락카에 담음 (StateFul)
+
+        return "redirect:/"; // 컨트롤러가 존재하면 무조건 redirect 외우기
     }
-
-    User user = userRepository.findByUsername(requestDTO.getUsername());
-
-    if (!BCrypt.checkpw(requestDTO.getPassword(), user.getPassword())){
-        throw new RuntimeException("패스워드가 틀렸습니다.");
-    }
-    session.setAttribute("sessionUser", user); // 락카에 담음 (StateFul)
-
-    return "redirect:/"; // 컨트롤러가 존재하면 무조건 redirect 외우기
-}
 
     @PostMapping("/join")
     public String join(UserRequest.JoinDTO requestDTO){
@@ -63,12 +63,7 @@ public String login(UserRequest.LoginDTO requestDTO){
         String encPassword = BCrypt.hashpw(rawPassword, BCrypt.gensalt());
         requestDTO.setPassword(encPassword);
 
-
-        try {
-            userRepository.save(requestDTO); // 모델에 위임하기
-        } catch (Exception e){
-            throw new RuntimeException("아이디가 중복 되었어요.");
-        }
+        userRepository.save(requestDTO); // 모델에 위임하기
 
         return "redirect:/loginForm";
     }
