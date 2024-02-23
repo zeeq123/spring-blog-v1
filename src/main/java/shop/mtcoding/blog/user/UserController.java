@@ -7,7 +7,9 @@ import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
+import shop.mtcoding.blog._core.util.ApiUtil;
 import shop.mtcoding.blog._core.util.Script;
 
 
@@ -22,6 +24,17 @@ public class UserController {
     // 왜 조회인데 post임? 민간한 정보는 body로 보낸다.
     // 로그인만 예외로 select인데 post 사용
     // select * from user_tb where username=? and password=?
+
+    @GetMapping("/api/username-same-check")
+    public @ResponseBody ApiUtil<?> usernameSameCheck(@RequestBody UserRequest.UsernameSameCheckDTO requestDTO){
+        User user = userRepository.findByUsername(requestDTO.getUsername());
+        if (user == null){
+            return new ApiUtil<>(true);
+        }else{
+            return new ApiUtil<>(false);
+        }
+    }
+
 @PostMapping("/login")
 public String login(UserRequest.LoginDTO requestDTO){
 
