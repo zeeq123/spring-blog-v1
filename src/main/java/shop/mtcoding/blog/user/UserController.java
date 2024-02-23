@@ -19,7 +19,7 @@ public class UserController {
     private final UserRepository userRepository;
     private final HttpSession session;
 
-    // 왜 조회인데 post임? 민간함 정보는 body로 보낸다.
+    // 왜 조회인데 post임? 민간한 정보는 body로 보낸다.
     // 로그인만 예외로 select인데 post 사용
     // select * from user_tb where username=? and password=?
 @PostMapping("/login")
